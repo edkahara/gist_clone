@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :gist_clone, GistClone.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "gist_clone_db",
+  password: "gist_clone_db",
   hostname: "localhost",
   database: "gist_clone_dev",
   stacktrace: true,
