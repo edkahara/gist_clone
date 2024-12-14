@@ -25,6 +25,19 @@ import topbar from "../vendor/topbar";
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
+
+function updateLineNumbers(value) {
+  const lineNumberText = document.querySelector("#line-numbers");
+
+  if (!lineNumberText) return;
+
+  const lines = value.split("\n");
+
+  const numbers = lines.map((_, index) => index + 1).join("\n") + "\n";
+
+  lineNumberText.value = numbers;
+}
+
 let Hooks = {};
 
 Hooks.Highlight = {
@@ -35,7 +48,9 @@ Hooks.Highlight = {
     if (name && codeBlock) {
       codeBlock.className = codeBlock.className.replace(/language-\S+/g, "");
       codeBlock.classList.add(`language-${this.getSyntaxType(name)}`);
-      hljs.highlightElement(codeBlock);
+      const trimmed = this.trimCodeBlock(codeBlock);
+      hljs.highlightElement(trimmed);
+      updateLineNumbers(trimmed.textContent);
     }
   },
 
@@ -56,57 +71,58 @@ Hooks.Highlight = {
         return "elixir";
     }
   },
+
+  trimCodeBlock(codeBlock) {
+    const lines = codeBlock.textContent.split("\n");
+    if (lines.length > 2) {
+      lines.shift();
+      lines.pop();
+    }
+    codeBlock.textContent = lines.join("\n");
+    return codeBlock;
+  },
 };
 
 Hooks.UpdateLineNumbers = {
   mounted() {
     const lineNumberText = document.querySelector("#line-numbers");
 
-    // Create line numbers based on the number of lines in the markup_text textarea
     this.el.addEventListener("input", () => {
-      this.updateLineNumbers();
+      updateLineNumbers(this.el.value);
     });
 
-    // When the markup_text textarea is scrolled, scroll the line numbers textarea to the same position
     this.el.addEventListener("scroll", () => {
       lineNumberText.scrollTop = this.el.scrollTop;
     });
 
-    // Prevent going to Create Gist button when Tab key is pressed, instead add tab in the code
     this.el.addEventListener("keydown", (e) => {
       if (e.key == "Tab") {
         e.preventDefault();
-        var start = this.el.selectionStart; // Start of the cursor position
-        var end = this.el.selectionEnd; // End of the cursor position
-        // Update markup_text value by adding tab character at the cursor's current position
+        var start = this.el.selectionStart;
+        var end = this.el.selectionEnd;
         this.el.value =
-          this.el.value.substring(0, start) + // Everything before the cursor
-          "\t" + // Add tab character
-          this.el.value.substring(end); // Everything after the cursor
-        this.el.selectionStart = this.el.selectionEnd = start + 1; // Update cursor position by setting it to the right of the tab character
+          this.el.value.substring(0, start) +
+          "\t" +
+          this.el.value.substring(end);
+        this.el.selectionStart = this.el.selectionEnd = start + 1;
       }
     });
 
-    // Reset textareas when form is successfully submitted
     this.handleEvent("clear-textareas", () => {
       this.el.value = "";
       lineNumberText.value = "1\n";
     });
 
-    this.updateLineNumbers();
-  },
-
-  updateLineNumbers() {
-    const lineNumberText = document.querySelector("#line-numbers");
-    if (!lineNumberText) return;
-
-    const lines = this.el.value.split("\n");
-
-    const numbers = lines.map((_, index) => index + 1).join("\n") + "\n";
-
-    lineNumberText.value = numbers;
+    updateLineNumbers(this.el.value);
   },
 };
+
+Hooks.CurrentYear = {
+  mounted() {
+    this.el.textContent = new Date().getFullYear();
+  },
+};
+
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },

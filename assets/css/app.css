@@ -87,7 +87,7 @@ form input[type="text"]:focus {
 }
 
 .syntax-numbers:focus {
-  @apply focus:outline-none focus:border-white;
+  @apply focus:outline-none focus:border-white focus:ring-0;
 }
 
 .create_button {
