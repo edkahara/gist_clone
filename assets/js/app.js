@@ -31,14 +31,32 @@ Hooks.UpdateLineNumbers = {
   mounted() {
     const lineNumberText = document.querySelector("#line-numbers");
 
+    // Create line numbers based on the number of lines in the markup_text textarea
     this.el.addEventListener("input", () => {
       this.updateLineNumbers();
     });
 
+    // When the markup_text textarea is scrolled, scroll the line numbers textarea to the same position
     this.el.addEventListener("scroll", () => {
       lineNumberText.scrollTop = this.el.scrollTop;
     });
 
+    // Prevent going to Create Gist button when Tab key is pressed, instead add tab in the code
+    this.el.addEventListener("keydown", (e) => {
+      if (e.key == "Tab") {
+        e.preventDefault();
+        var start = this.el.selectionStart; // Start of the cursor position
+        var end = this.el.selectionEnd; // End of the cursor position
+        // Update markup_text value by adding tab character at the cursor's current position
+        this.el.value =
+          this.el.value.substring(0, start) + // Everything before the cursor
+          "\t" + // Add tab character
+          this.el.value.substring(end); // Everything after the cursor
+        this.el.selectionStart = this.el.selectionEnd = start + 1; // Update cursor position by setting it to the right of the tab character
+      }
+    });
+
+    // Reset textareas when form is successfully submitted
     this.handleEvent("clear-textareas", () => {
       this.el.value = "";
       lineNumberText.value = "1\n";
