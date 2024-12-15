@@ -15,6 +15,7 @@
 //     import "some-package"
 //
 import hljs from "highlight.js";
+
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
@@ -26,8 +27,8 @@ let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
-function updateLineNumbers(value) {
-  const lineNumberText = document.querySelector("#line-numbers");
+function updateLineNumbers(value, element_id = "#line-numbers") {
+  const lineNumberText = document.querySelector(element_id);
 
   if (!lineNumberText) return;
 
@@ -48,9 +49,9 @@ Hooks.Highlight = {
     if (name && codeBlock) {
       codeBlock.className = codeBlock.className.replace(/language-\S+/g, "");
       codeBlock.classList.add(`language-${this.getSyntaxType(name)}`);
-      const trimmed = this.trimCodeBlock(codeBlock);
+      trimmed = this.trimCodeBlock(codeBlock);
       hljs.highlightElement(trimmed);
-      updateLineNumbers(trimmed.textContent);
+      updateLineNumbers(trimmed.textContent, "#syntax-numbers");
     }
   },
 
@@ -135,6 +136,19 @@ Hooks.CopyToClipboard = {
   },
 };
 
+Hooks.ToggleEdit = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      let edit = document.getElementById("edit-section");
+      let syntax = document.getElementById("syntax-section");
+      if (edit && syntax) {
+        edit.style.display = "block";
+        syntax.style.display = "none";
+      }
+    });
+  },
+};
+
 Hooks.CurrentYear = {
   mounted() {
     this.el.textContent = new Date().getFullYear();
@@ -142,7 +156,6 @@ Hooks.CurrentYear = {
 };
 
 let liveSocket = new LiveSocket("/live", Socket, {
-  longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
   hooks: Hooks,
 });
