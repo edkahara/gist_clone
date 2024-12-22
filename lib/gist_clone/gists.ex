@@ -19,7 +19,9 @@ defmodule GistClone.Gists do
 
   """
   def list_gists do
-    Repo.all(Gist)
+    Gist
+    |> order_by(desc: :updated_at)
+    |> Repo.all()
   end
 
   @doc """

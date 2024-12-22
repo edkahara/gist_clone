@@ -2,13 +2,12 @@ defmodule GistCloneWeb.GistLive do
   use GistCloneWeb, :live_view
 
   alias GistClone.Gists
-  alias GistCloneWeb.GistFormComponent
+  alias GistCloneWeb.{GistFormComponent,Utilities.DateFormat}
 
   def mount(%{"id" => id}, _session, socket) do
     gist = Gists.get_gist!(id)
 
-    {:ok, relative_time} = Timex.format(gist.updated_at, "{relative}", :relative)
-    gist = Map.put(gist, :relative, relative_time)
+    gist = Map.put(gist, :relative, DateFormat.get_relative_time(gist.updated_at))
 
     {:ok, assign(socket, gist: gist)}
   end
